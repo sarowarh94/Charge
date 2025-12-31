@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>দোকানের হিসাব ক্যালকুলেটর</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); width: 100%; max-width: 450px; }
+        h2 { text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 25px; }
+        .input-group { margin-bottom: 20px; display: flex; align-items: center; background-color: #f9f9f9; border-radius: 8px; border: 1px solid #e0e0e0; padding: 8px 12px; }
+        .input-group i { color: #7f8c8d; margin-right: 12px; font-size: 18px; }
+        label { flex: 1; margin-right: 10px; font-weight: bold; color: #555; }
+        input[type="text"], input[type="number"] { flex: 2; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px; color: #333; }
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; } /* Firefox */
+        
+        button { width: 100%; padding: 14px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 19px; cursor: pointer; transition: background-color 0.3s ease, transform 0.2s ease; margin-top: 10px; }
+        button:hover { background-color: #2980b9; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+
+        #resultContainer { margin-top: 30px; padding: 20px; background: #ecf0f1; border-radius: 10px; border: 1px solid #dcdcdc; display: none; position: relative; overflow: hidden; }
+        #resultContainer p { margin: 10px 0; font-size: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+        #resultContainer p:last-of-type { border-bottom: none; padding-bottom: 0; }
+        #resultContainer p span:first-child { font-weight: bold; color: #444; }
+        #resultContainer p span:last-child { color: #2c3e50; }
+        .total-net { font-size: 18px; font-weight: bold; color: #27ae60 !important; margin-top: 15px; border-top: 2px solid #bdc3c7; padding-top: 10px; }
+        .total-charges { color: #e74c3c !important; }
+
+        .paid-stamp {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-20deg);
+            font-size: 60px;
+            font-weight: bold;
+            color: rgba(231, 76, 60, 0.4); /* Red with transparency */
+            border: 5px solid rgba(231, 76, 60, 0.4);
+            padding: 10px 20px;
+            border-radius: 10px;
+            letter-spacing: 3px;
+            pointer-events: none; /* Allows clicks to pass through */
+            z-index: 10;
+        }
+
+        #downloadButton {
+            display: none; /* Hide until result is shown */
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 17px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        #downloadButton:hover { background-color: #218838; }
+        #downloadButton i { margin-right: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2><i class="fas fa-calculator"></i> দোকানের হিসাব ক্যালকুলেটর</h2>
+    
+    <div class="input-group">
+        <i class="fas fa-store"></i>
+        <label for="shopName">দোকানের নাম</label>
+        <input type="text" id="shopName" placeholder="যেমন: আমার দোকান">
+    </div>
+
+    <div class="input-group">
+        <i class="fas fa-money-bill-wave"></i>
+        <label for="totalAmount">মোট টাকা</label>
+        <input type="number" id="totalAmount" placeholder="মোট ক্যাশ + বিকাশ + নগদ সহ">
+    </div>
+
+    <div class="input-group">
+        <i class="fab fa-cc-paypal"></i> <label for="bkashAmount">বিকাশ লেনদেন (টাকা)</label>
+        <input type="number" id="bkashAmount" placeholder="0.00">
+    </div>
+
+    <div class="input-group">
+        <i class="fas fa-money-check-alt"></i> <label for="nagadAmount">নগদ লেনদেন (টাকা)</label>
+        <input type="number" id="nagadAmount" placeholder="0.00">
+    </div>
+
+    <button onclick="calculateAndDisplay()">হিসাব করুন</button>
+
+    <div id="resultContainer">
+        <div class="paid-stamp">PAID</div>
+        <p><span id="resShopName"></span></p>
+        <p><span>মোট লেনদেন:</span> <span id="resTotalAmount">0.00</span> টাকা</p>
+        <p><span>বিকাশ চার্জ (২%):</span> <span id="resBkashCharge">0.00</span> টাকা</p>
+        <p><span>নগদ চার্জ (১.৫%):</span> <span id="resNagadCharge">0.00</span> টাকা</p>
+        <p class="total-charges"><span>মোট চার্জ:</span> <span id="resTotalCharges">0.00</span> টাকা</p>
+        <p class="total-net"><span>আপনার নিট জমা:</span> <span id="resNetTotal">0.00</span> টাকা</p>
+        
+        <button id="downloadButton" onclick="downloadResultImage()" style="display: flex;">
+            <i class="fas fa-download"></i> ফলাফল ডাউনলোড করুন
+        </button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    function calculateAndDisplay() {
+        let shopName = document.getElementById('shopName').value || "দোকানের নাম";
+        let totalAmount = parseFloat(document.getElementById('totalAmount').value) || 0;
+        let bkashAmount = parseFloat(document.getElementById('bkashAmount').value) || 0;
+        let nagadAmount = parseFloat(document.getElementById('nagadAmount').value) || 0;
+
+        let bkashCharge = bkashAmount * 0.02;
+        let nagadCharge = nagadAmount * 0.015;
+        let totalCharges = bkashCharge + nagadCharge;
+
+        // মোট টাকা থেকে শুধু চার্জ বাদ যাবে, যেহেতু totalAmount ইনপুট হিসেবে নেওয়া হয়েছে।
+        let netTotal = totalAmount - totalCharges;
+
+        document.getElementById('resShopName').innerText = `দোকান: ${shopName}`;
+        document.getElementById('resTotalAmount').innerText = totalAmount.toFixed(2);
+        document.getElementById('resBkashCharge').innerText = bkashCharge.toFixed(2);
+        document.getElementById('resNagadCharge').innerText = nagadCharge.toFixed(2);
+        document.getElementById('resTotalCharges').innerText = totalCharges.toFixed(2);
+        document.getElementById('resNetTotal').innerText = netTotal.toFixed(2);
+        
+        document.getElementById('resultContainer').style.display = 'block';
+        document.getElementById('downloadButton').style.display = 'flex'; // Show download button
+    }
+
+    function downloadResultImage() {
+        const resultContainer = document.getElementById('resultContainer');
+        html2canvas(resultContainer, {
+            scale: 2, // Increase scale for better quality
+            useCORS: true, // If any external assets are used
+            allowTaint: true, // For cross-origin images (if any)
+            backgroundColor: null // Transparent background if needed
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'দোকানের_হিসাব.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+</script>
+
+</body>
+</html>
