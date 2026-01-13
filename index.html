@@ -110,7 +110,6 @@
             transform: translateY(-2px);
         }
 
-        /* Result Section */
         #invoice {
             margin-top: 25px;
             padding: 20px;
@@ -126,6 +125,13 @@
             border-bottom: 1px solid #ddd;
             margin-bottom: 15px;
             padding-bottom: 10px;
+        }
+        
+        /* তারিখের ফন্ট স্টাইল ইংরেজি করার জন্য */
+        #currentDate {
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            color: #555;
         }
 
         .data-row {
@@ -144,7 +150,6 @@
             color: var(--success-color);
         }
 
-        /* PAID Watermark */
         .watermark {
             position: absolute;
             top: 50%;
@@ -240,7 +245,6 @@
         const totalCharge = bkashCharge + nagadCharge;
         const finalAmount = total - totalCharge;
 
-        // Populate Result
         document.getElementById('resName').innerText = name;
         document.getElementById('resTotal').innerText = total.toFixed(2);
         document.getElementById('resBkash').innerText = bkashCharge.toFixed(2);
@@ -248,10 +252,18 @@
         document.getElementById('resTotalCharge').innerText = totalCharge.toFixed(2);
         document.getElementById('resFinal').innerText = finalAmount.toFixed(2);
         
-        // Date
-        document.getElementById('currentDate').innerText = new Date().toLocaleString('bn-BD');
+        // তারিখ ও সময় ইংরেজি (en-GB/en-US) ফরম্যাটে করার পরিবর্তন এখানে:
+        const now = new Date();
+        const dateTimeString = now.toLocaleString('en-GB', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: true 
+        });
+        document.getElementById('currentDate').innerText = dateTimeString;
 
-        // Show Invoice and Download Button
         document.getElementById('invoice').style.display = 'block';
         document.getElementById('download-btn').style.display = 'block';
     }
